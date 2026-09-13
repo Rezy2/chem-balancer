@@ -25,7 +25,6 @@
                     Setarakan
                 </button>
             </div>
-            
         </div>
 
         <div id="resultBox" class="hidden bg-white border border-stone-200 p-6 rounded-xl shadow-sm space-y-4">
@@ -41,14 +40,8 @@
 
     <script>
         function normalizeFormula(str) {
-            // Convert unicode subscripts to standard digits
             const subMap = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
             return str.replace(/[₀₁₂₃₄₅₆₇₈₉]/g, m => subMap[m]);
-        }
-
-        function setExample(eq) {
-            document.getElementById('inputEq').value = eq;
-            balance();
         }
 
         function parseFormula(formula) {
