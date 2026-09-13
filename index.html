@@ -18,8 +18,8 @@
         <div class="bg-white border border-stone-200 p-6 rounded-xl shadow-sm mb-8">
             <label class="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">Persamaan Reaksi</label>
             <div class="flex flex-col sm:flex-row gap-3">
-                <input id="inputEq" type="text" placeholder="Contoh: H2 + O2 -> H2O atau Fe + O2 -> Fe2O3" 
-                    value="C3H8 + O2 -> CO2 + H2O"
+                <input id="inputEq" type="text" placeholder="Contoh: C2H6 + O2 -> CO2 + H2O atau C₂H₆ + O₂ → CO₂ + H₂O" 
+                    value="C2H6 + O2 -> CO2 + H2O"
                     class="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-300 rounded-lg text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:bg-white text-sm">
                 <button onclick="balance()" class="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-medium rounded-lg text-sm transition">
                     Setarakan
@@ -28,10 +28,10 @@
             
             <div class="mt-4 flex flex-wrap gap-2">
                 <span class="text-xs text-stone-400 self-center">Contoh cepat:</span>
-                <button onclick="setExample('H2 + O2 -> H2O')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">H2 + O2</button>
-                <button onclick="setExample('Fe + O2 -> Fe2O3')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">Fe + O2</button>
-                <button onclick="setExample('KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">KMnO4 + HCl</button>
-                <button onclick="setExample('Al + H2SO4 -> Al2(SO4)3 + H2')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">Al + H2SO4</button>
+                <button onclick="setExample('C2H6 + O2 -> CO2 + H2O')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">C₂H₆ + O₂</button>
+                <button onclick="setExample('H2 + O2 -> H2O')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">H₂ + O₂</button>
+                <button onclick="setExample('Fe + O2 -> Fe2O3')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">Fe + O₂</button>
+                <button onclick="setExample('KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2')" class="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs rounded transition">KMnO₄ + HCl</button>
             </div>
         </div>
 
@@ -47,17 +47,22 @@
     </div>
 
     <script>
+        function normalizeFormula(str) {
+            // Convert unicode subscripts to standard digits
+            const subMap = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+            return str.replace(/[₀₁₂₃₄₅₆₇₈₉]/g, m => subMap[m]);
+        }
+
         function setExample(eq) {
             document.getElementById('inputEq').value = eq;
             balance();
         }
 
         function parseFormula(formula) {
-            formula = formula.trim();
+            formula = normalizeFormula(formula.trim());
             let count = {};
             let regex = /([A-Z][a-z]*)(\d*)/g;
             
-            // Handle simple parentheses expansion like Al2(SO4)3
             while (formula.includes('(')) {
                 formula = formula.replace(/\(([^()]+)\)(\d+)/g, (match, inner, mult) => {
                     let m = parseInt(mult, 10);
@@ -84,15 +89,10 @@
             return a;
         }
 
-        function lcm(a, b) {
-            return (a * b) / gcd(a, b);
-        }
-
         function solveNullspace(matrix) {
             let rows = matrix.length;
             let cols = matrix[0].length;
             
-            // Gaussian elimination with rational approximation
             let mat = matrix.map(r => r.map(v => Number(v)));
             let lead = 0;
             for (let r = 0; r < rows; ++r) {
@@ -120,7 +120,6 @@
                 lead++;
             }
 
-            // Brute-force small integer coefficients search for robustness
             for (let target = 1; target <= 100; target++) {
                 let coeffs = new Array(cols).fill(0);
                 coeffs[cols - 1] = target;
@@ -203,7 +202,10 @@
                 return;
             }
 
-            let formatTerm = (c, formula) => (c > 1 ? c : '') + formula.replace(/(\d+)/g, '<sub>$1</sub>');
+            let formatTerm = (c, formula) => {
+                let norm = normalizeFormula(formula);
+                return (c > 1 ? c : '') + norm.replace(/(\d+)/g, '<sub>$1</sub>');
+            };
             let leftStr = left.map((f, i) => formatTerm(coeffs[i], f)).join(' + ');
             let rightStr = right.map((f, i) => formatTerm(coeffs[left.length + i], f)).join(' + ');
 
@@ -216,7 +218,6 @@
             resBox.classList.remove('hidden');
         }
 
-        // Auto run initial equation
         balance();
     </script>
 </body>
